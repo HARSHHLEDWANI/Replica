@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id         String    @id @default(uuid())
+  email      String?   @unique
+  createdAt  DateTime  @default(now()) @map("created_at")
+  
+  notes      Note[]
+  operations Operation[]
+  
+  @@map("users")
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  version   Int      @default(1)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notes")
+}
+
+model Operation {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  entityType       String   @map("entity_type")
+  entityId         String   @map("entity_id")
+  opType           String   @map("op_type")
+  changes          Json
+  clientTimestamp  BigInt   @map("client_timestamp")
+  appliedAt        DateTime? @map("applied_at")
+  baseVersion      Int?     @map("base_version")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("operations")
+}

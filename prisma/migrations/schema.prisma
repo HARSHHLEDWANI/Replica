@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  email      String?   @unique
+  createdAt  DateTime  @default(now()) @map("created_at")
+  
+  notes      Note[]
+  operations Operation[]
+  
+  @@map("users")
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  version   Int      @default(1)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notes")
+}
+
+model Operation {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  entityType       String   @map("entity_type")
+  entityId         String   @map("entity_id")
+  opType           String   @map("op_type")
+  changes          Json
+  clientTimestamp  BigInt   @map("client_timestamp")
+  appliedAt        DateTime? @map("applied_at")
+  baseVersion      Int?     @map("base_version")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("operations")
+}
+
+// For future features (commented out for now)
+/*
+model Media {
+  id        String   @id @default(uuid())
+  noteId    String   @map("note_id")
+  type      String   // 'image', 'audio', 'file'
+  url       String
+  localPath String?  @map("local_path")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  
+  @@map("media")
+}
+
+model Todo {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  completed Boolean  @default(false)
+  dueDate   DateTime? @map("due_date")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("todos")
+}
+*/
